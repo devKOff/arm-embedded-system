@@ -1,145 +1,127 @@
+<div align="center">
 
-# Experiment 01: 4-LED Sequential Blinking
+# 01 — LED Sequential Blink
 
-A program to interface **4 LEDs with the LPC2148 ARM7 microcontroller** using **Keil uVision 4**. The LEDs blink sequentially in a continuous loop. The circuit and program logic are verified using **Proteus Professional**.
+**ARM7 (LPC2148) GPIO lab: sequentially blink a bank of LEDs connected to a microcontroller port.**
+
+[![MCU](https://img.shields.io/badge/MCU-ARM7%20LPC2148-345087?style=flat-square&logo=arm&logoColor=white)](https://www.nxp.com/products/LPC2148)
+[![IDE](https://img.shields.io/badge/IDE-Keil%20µVision%204-orange?style=flat-square)](https://www.keil.com/)
+[![Simulation](https://img.shields.io/badge/Simulation-Proteus%208-red?style=flat-square)](https://www.labcenter.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](../LICENSE)
+
+[⬅ Back to Lab Index](../README.md)
+
+</div>
 
 ---
 
-## Circuit Schematic
+## Table of Contents
 
-![4-LED Sequential Blinking Circuit](./circuit.svg)
-
-**[Click here to view the circuit schematic](./circuit.svg)**
+- [Objective](#objective)
+- [Hardware & Tools Used](#hardware--tools-used)
+- [Circuit Diagram](#circuit-diagram)
+- [Code Overview](#code-overview)
+- [Simulation](#simulation)
+- [How to Build & Run](#how-to-build--run)
+- [Repository Structure](#repository-structure)
+- [Expected Output](#expected-output)
 
 ---
 
-## Hardware Pin Connections
+## Objective
 
-| Component Pin | LPC2148 Pin | Logic Type | Description |
-|---|---|---|---|
-| **LED 1 Anode (+)** | **P1.16** | Active-HIGH | Sequential Blinking Stage 1 |
-| **LED 2 Anode (+)** | **P1.17** | Active-HIGH | Sequential Blinking Stage 2 |
-| **LED 3 Anode (+)** | **P1.18** | Active-HIGH | Sequential Blinking Stage 3 |
-| **LED 4 Anode (+)** | **P1.19** | Active-HIGH | Sequential Blinking Stage 4 |
-| **LED Cathodes (-)** | **GND** | Ground | Connected through 330Ω current-limiting resistors |
+Configure a GPIO port on the **LPC2148** as output and drive a row of LEDs so that they light up
+**one at a time, in sequence** (a "running light" / Knight Rider–style pattern), using simple
+GPIO writes and software delay loops.
 
-### Pin Configuration
+**Learning outcomes:**
+- Configuring LPC2148 GPIO pins as digital outputs (`IODIR`, `IOSET`, `IOCLR` registers)
+- Generating time delays for visible LED timing
+- Basic sequential bit-pattern control over a port
 
-| Parameter | Configuration |
+---
+
+## Hardware & Tools Used
+
+| Component | Role |
 |---|---|
-| Microcontroller | ARM7 LPC2148 |
-| LED 1 | P1.16 |
-| LED 2 | P1.17 |
-| LED 3 | P1.18 |
-| LED 4 | P1.19 |
-| GPIO Direction | Output |
-| Logic HIGH | LED ON |
-| Logic LOW | LED OFF |
+| **LPC2148 (ARM7TDMI-S)** | Target microcontroller |
+| **8× LEDs + current-limiting resistors** | Connected to a GPIO port (e.g., P0) to visualize the sequence |
+| **Keil µVision 4** | Embedded C development, compilation, and `.hex` generation |
+| **Proteus 8 Professional** | Circuit simulation (no physical hardware required) |
 
 ---
 
-## Working Principle
+## Circuit Diagram
 
-The LPC2148 microcontroller controls four LEDs connected to GPIO pins P1.16, P1.17, P1.18, and P1.19.
+<div align="center">
+  <img src="circuit.svg" alt="LED Sequential Blink circuit schematic" width="700"/>
+</div>
 
-The program turns ON one LED at a time and turns OFF the previously active LED. A delay is applied between each stage.
-
-### Sequential Operation
-
-```text
-LED 1 ON
-   ↓
-LED 1 OFF → LED 2 ON
-   ↓
-LED 2 OFF → LED 3 ON
-   ↓
-LED 3 OFF → LED 4 ON
-   ↓
-LED 4 OFF
-   ↓
-Repeat from LED 1
-```
-
-The sequence continues continuously in an infinite loop.
+> If the schematic above doesn't render inline, open [`circuit.svg`](circuit.svg) directly.
 
 ---
 
-## Software Requirements
-
-- **Microcontroller:** ARM7 LPC2148
-- **IDE:** Keil uVision 4
-- **Programming Language:** Embedded C
-- **Simulation Software:** Proteus Professional
-- **Startup File:** Startup.s
-
----
-
-## Project Directory Structure
-
-```text
-01_LED_Sequential_Blink/
-├── README.md                 # Project documentation
-├── circuit.svg               # Proteus circuit schematic
-├── code/                     # Keil uVision 4 project files
-│   ├── main.c               # Main embedded C program
-│   ├── Startup.s            # ARM7 startup assembly file
-│   └── Project.uvproj       # Keil project file
-└── simulation/               # Proteus simulation files
-    └── circuit.pdsprj       # Proteus project file
-```
-
----
-
-## Files Description
+## Code Overview
 
 | File | Description |
 |---|---|
-| `README.md` | Project documentation |
-| `circuit.svg` | Circuit schematic |
-| `code/main.c` | Embedded C source code |
-| `code/Startup.s` | ARM7 startup assembly code |
-| `code/Project.uvproj` | Keil uVision 4 project |
-| `simulation/circuit.pdsprj` | Proteus simulation project |
+| [`code/main.c`](code/main.c) | Main application: initializes GPIO direction registers and loops through the LED sequence with delay |
+| [`code/Startup.s`](code/Startup.s) | ARM7 startup assembly file — sets up the vector table and stack before `main()` runs |
+| [`code/Project.uvproj`](code/Project.uvproj) | Keil µVision 4 project file — open this to build the lab in Keil |
 
----
-
-## Expected Output
-
-The four LEDs blink sequentially in the following order:
-
-**LED 1 → LED 2 → LED 3 → LED 4 → Repeat**
-
-Each LED turns ON individually while the remaining LEDs stay OFF.
+**Core logic (conceptual):**
+1. Set the relevant GPIO port pins as outputs via `IODIR`.
+2. In an infinite loop, set one pin HIGH via `IOSET`, hold for a software delay, then clear it via
+   `IOCLR` before moving to the next pin.
+3. Repeat so the "on" LED appears to move along the row.
 
 ---
 
 ## Simulation
 
-The circuit is designed and tested in **Proteus Professional**.
+Open [`simulation/circuit.pdsprj`](simulation/circuit.pdsprj) in **Proteus 8 Professional**:
 
-The simulation verifies:
-
-- LPC2148 GPIO output configuration.
-- Sequential LED activation.
-- LED switching and timing delay.
-- Continuous looping operation.
+1. Load the `.hex` file generated by Keil into the LPC2148 component's **Program File** property.
+2. Run the simulation.
+3. Observe the LEDs lighting up one after another in sequence.
 
 ---
 
-## Project Objectives
+## How to Build & Run
 
-1. Understand GPIO programming in the LPC2148 ARM7 microcontroller.
-2. Interface multiple LEDs with GPIO pins.
-3. Implement sequential LED blinking using Embedded C.
-4. Verify the circuit using Proteus Professional.
-5. Develop practical ARM7 embedded systems programming skills.
+1. Open [`code/Project.uvproj`](code/Project.uvproj) in **Keil µVision 4**.
+2. Build the project (`Project → Build Target`) to generate the `.hex` output.
+3. Open [`simulation/circuit.pdsprj`](simulation/circuit.pdsprj) in **Proteus**, attach the
+   generated `.hex` file to the LPC2148, and run the simulation.
+4. *(Optional)* Flash the `.hex` file to a physical LPC2148 board using Flash Magic or your
+   preferred flashing utility.
 
 ---
 
-## Author
+## Repository Structure
 
-**Devendra Kashyap**
+```text
+01_LED_Sequential_Blink/
+├── README.md          <-- This file
+├── circuit.svg         <-- Schematic diagram
+├── code/                <-- Keil µVision 4 project files
+│   ├── main.c
+│   ├── Startup.s
+│   └── Project.uvproj
+└── simulation/           <-- Proteus simulation project
+    └── circuit.pdsprj
+```
 
-B.Tech CSE (IoT)
+---
 
-ARM7 LPC2148 Embedded Systems Laboratory
+## Expected Output
+
+The connected LEDs turn on one at a time in order (LED1 → LED2 → ... → LED8), each staying lit
+briefly before the next one activates, producing a continuous scrolling/chasing light effect.
+
+<div align="center">
+
+[⬅ Back to Lab Index](../README.md)
+
+</div>
